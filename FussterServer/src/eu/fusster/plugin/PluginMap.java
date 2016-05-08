@@ -94,7 +94,7 @@ public class PluginMap {
 	}
 
 	/**
-	 * Notifies all the plugins that a player has joined
+	 * Notifies all the server plugins that a player has joined
 	 * 
 	 * @param event
 	 *            The {@link PlayerJoinEvent} that is made for the
@@ -104,8 +104,9 @@ public class PluginMap {
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		synchronized (synmap) {
 			for (FussterPlugin fp : synmap.keySet())
+				if(fp instanceof ServerPlugin)
 				try {
-					fp.onPlayerJoinEvent(event);
+					((ServerPlugin)fp).onPlayerJoinEvent(event);
 				} catch (Exception exception) {
 					ServerUI.debug(fp,
 							"Problem with Player Join Event. Message: "
@@ -158,8 +159,9 @@ public class PluginMap {
 	public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
 		synchronized (synmap) {
 			for (FussterPlugin fp : synmap.keySet())
+				if(fp instanceof ServerPlugin)
 				try {
-					fp.onPlayerDisconnectEvent(event);
+					((ServerPlugin)fp).onPlayerDisconnectEvent(event);
 				} catch (Exception exception) {
 					ServerUI.debug(fp,
 							"Problem with Player Disconnect Event. Message: "

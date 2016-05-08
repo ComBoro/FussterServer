@@ -37,7 +37,7 @@ import eu.fusster.ui.ServerUI;
 
 public class ServerInfo {
 
-	public static final String VERSION = "Alpha 01F05";
+	public static final String VERSION = "Alpha 01F09";
 
 	private int max_players, port;
 	private String name;

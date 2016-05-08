@@ -36,9 +36,6 @@ import java.util.Arrays;
 import eu.fusster.Fusster;
 import eu.fusster.command.Command;
 import eu.fusster.command.CommandSender;
-import eu.fusster.player.Player;
-import eu.fusster.player.event.PlayerDisconnectEvent;
-import eu.fusster.player.event.PlayerJoinEvent;
 import eu.fusster.ui.ServerUI;
 
 /**
@@ -82,16 +79,6 @@ public abstract class FussterPlugin {
 	}
 
 	/**
-	 * Called when a player registers on the server.
-	 * 
-	 * @param event
-	 *            Details about the {@link Player} and other info.
-	 * @see PlayerJoinEvent
-	 */
-	protected abstract void onPlayerJoinEvent(PlayerJoinEvent event)
-			throws Exception;
-
-	/**
 	 * Called when a {@link CommandSender} send a command to the server.
 	 * 
 	 * @param sender
@@ -108,16 +95,6 @@ public abstract class FussterPlugin {
 	 */
 	protected abstract boolean onCommand(CommandSender sender, String label,
 			String[] args) throws Exception;
-
-	/**
-	 * Called when a player disconnects from the server.
-	 * 
-	 * @param event
-	 *            Details about the Player and other info.
-	 * @see PlayerDisconnectEvent
-	 */
-	protected abstract void onPlayerDisconnectEvent(PlayerDisconnectEvent event)
-			throws Exception;
 
 	// Plugin events
 	/**
