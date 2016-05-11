@@ -33,26 +33,21 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import eu.fusster.ui.ServerUI;
-
 public class ServerInfo {
 
-	public static final String VERSION = "Alpha 01F09";
+	public static final String VERSION = "Alpha 01F0A";
 
 	private int max_players, port;
 	private String name;
 	private boolean debugging;
 
-	private Loader loader;
 	public PrintWriter logger;
 
 	private Vector<String> banList = new Vector<String>();
 
 	private File banListFile;
 
-	public ServerInfo(Loader loader) {
-		this.loader = loader;
-
+	public ServerInfo() {
 		loadLogger();
 		loadServerConfig();
 		loadBanList();
@@ -111,12 +106,12 @@ public class ServerInfo {
 
 	public void loadLogger() {
 		try {
-			File logs = loader.loadDirectory("logs");
+			File logs = Loader.loadDirectory("logs");
 			File currentLog = new File(logs, System.currentTimeMillis()
 					+ ".log");
 			this.logger = new PrintWriter(currentLog);
 		} catch (Exception e) {
-			ServerUI.append("Failed to load the logger. Exception: " + e.getMessage());
+			Fusster.error("Failed to load the logger. Exception: " + e.getMessage());
 		}
 	}
 
@@ -126,7 +121,7 @@ public class ServerInfo {
 	 */
 	private void loadBanList() {
 		// Get Server Configuration File
-		banListFile = loader.loadFile("banlist.dat");
+		banListFile = Loader.loadFile("banlist.dat");
 		// Initialise reader and writer
 		BufferedReader banListReader = getReader(banListFile);
 
@@ -142,7 +137,7 @@ public class ServerInfo {
 	 */
 	private void loadServerConfig() {
 		// Get Server Configuration File
-		File serverConfig = loader.loadFile("server.info");
+		File serverConfig = Loader.loadFile("server.info");
 		// Init reader and writer
 		BufferedReader reader = getReader(serverConfig);
 		PrintWriter writer = getWriter(serverConfig);
@@ -150,7 +145,7 @@ public class ServerInfo {
 		// Use Reader && Writer
 		boolean result = readConfig(reader);
 		if (!result) {
-			ServerUI.append("Invalid config");
+			Fusster.error("Invalid config");
 			createDefault(writer);
 			writer.close();
 			reader = getReader(serverConfig);
@@ -186,7 +181,7 @@ public class ServerInfo {
 			temp.clear();
 			banListReader.close();
 		} catch (IOException e) {
-			ServerUI.error(e.getMessage());
+			Fusster.error(e.getMessage());
 		}
 	}
 

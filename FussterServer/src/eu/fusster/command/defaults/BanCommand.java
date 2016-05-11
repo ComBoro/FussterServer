@@ -24,7 +24,6 @@ import eu.fusster.command.CommandSender;
 import eu.fusster.player.Player;
 import eu.fusster.player.PlayerException;
 import eu.fusster.player.PlayerManager;
-import eu.fusster.ui.ServerUI;
 
 public class BanCommand extends DefaultCommand {
 
@@ -44,7 +43,7 @@ public class BanCommand extends DefaultCommand {
 		String arg1 = args[0];
 
 		if (arg1.equalsIgnoreCase("list")) {
-			ServerUI.append(Fusster.getBanList().toString());
+			Fusster.append(Fusster.getBanList().toString());
 			return true;
 		}
 

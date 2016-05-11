@@ -19,8 +19,6 @@
 
 package eu.fusster;
 
-import static eu.fusster.ui.ServerUI.append;
-
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,13 +37,14 @@ import eu.fusster.command.CommandMap;
 import eu.fusster.command.defaults.ThisCommand;
 import eu.fusster.player.Player;
 import eu.fusster.player.PlayerManager;
+import eu.fusster.plugin.FussterPlugin;
 import eu.fusster.plugin.PluginLoader;
 import eu.fusster.plugin.PluginMap;
-import eu.fusster.ui.ServerUI;
+import eu.fusster.ui.BetterUI;
 
 public final class Fusster {
 
-	private static ServerUI serverUI;
+	private static BetterUI betterUI;
 	private static ServerInfo serverInfo;
 	private static PluginLoader pluginLoader;
 	private static PluginMap pluginMap;
@@ -53,6 +52,8 @@ public final class Fusster {
 	private static String publicIP = "127.0.0.1";
 	private static String localIP;
 	private static int port;
+	
+	public static final Color error = new Color(178, 34, 34);
 
 	public static final String BAN_MESSEGE = "The Ban Hammer has spoken.";
 
@@ -60,11 +61,9 @@ public final class Fusster {
 
 	public static void main(String[] args) {
 		// Load GUI
-		serverUI = new ServerUI();
-		// Load the file / directory loader
-		Loader loader = new Loader();
-		// Load the server config file
-		serverInfo = new ServerInfo(loader);
+		betterUI = new BetterUI();
+		// Load the server configuration
+		serverInfo = new ServerInfo();
 		// Get config port
 		port = serverInfo.getPort();
 		// Basic auto response
@@ -79,7 +78,7 @@ public final class Fusster {
 		// Loader the basic Plugin Map
 		pluginMap = new PluginMap();
 		// Loader the loader loading plugins from 'plugins'
-		pluginLoader = new PluginLoader(pluginMap, loader);
+		pluginLoader = new PluginLoader(pluginMap);
 		// Load all plugins
 		pluginLoader.loadAll();
 	}
@@ -157,8 +156,8 @@ public final class Fusster {
 	/**
 	 * @return an instance of the {@link ServerUI}
 	 */
-	public static ServerUI getServerUI() {
-		return serverUI;
+	public static BetterUI getServerUI() {
+		return betterUI;
 	}
 
 	/**
@@ -277,10 +276,42 @@ public final class Fusster {
 		if (halt)
 			Runtime.getRuntime().halt(0);
 	}
+	
+	public static void append(String append){
+		betterUI.append(append);
+	}
+	
+	public static void append(String append, Color color){
+		betterUI.append(append, color);
+	}
+	
+	public static void debug(String append){
+		if(betterUI.isDebugging()){
+			append(append);
+		}
+	}
+	
+	public static void debug(String append, Color color){
+		if(betterUI.isDebugging()){
+			append(append, color);
+		}
+	}
+	
+	public static void debug(FussterPlugin fp, String string) {
+		append("["+fp.getDescription().getName()+"] " + string);
+	}
+	
+	public static void error(String error){
+		debug(error, Fusster.error);
+	}
 
 	public static void log(String string) {
 		if(serverInfo.logger !=  null)
 			serverInfo.logger.print(string);
+	}
+	
+	public static void updatePlayersPane(){
+		betterUI.updatePlayersPane();
 	}
 	
 	private static ServerListener listener(){
@@ -288,6 +319,7 @@ public final class Fusster {
 			
 			@Override
 			public void onClientConnect(Client client) {
+				betterUI.updateClientsPane();
 				client.addListener(new ClientListener() {
 					@Override
 					public void onInput(String input) {
@@ -297,13 +329,18 @@ public final class Fusster {
 							client.removeListener(this);
 							new Player(client, input.substring(4));
 						} else{
-							ServerUI.debug(client + input);
+							debug(client + input);
 						}
 					}
 
 					@Override
 					public void onClose(String reason) {
-						ServerUI.debug(client + " disconnected.");
+						debug(client + " disconnected.");
+					}
+
+					@Override
+					public void afterClose() {
+						betterUI.updateClientsPane();
 					}
 				});
 			}
@@ -323,7 +360,7 @@ public final class Fusster {
 
 			@Override
 			public void onServerStartFail(IOException e) {
-				ServerUI.append("Failed to start server. Enter a new port:");
+				append("Failed to start server. Enter a new port:");
 				String cmd = CommandMap.nextCommand();
 				try{
 					int port = Integer.parseInt(cmd);

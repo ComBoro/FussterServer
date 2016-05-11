@@ -21,7 +21,7 @@ package eu.fusster.command;
 
 import java.awt.Color;
 
-import eu.fusster.ui.ServerUI;
+import eu.fusster.Fusster;
 
 public class ConsoleCommandSender implements CommandSender {
 
@@ -31,7 +31,7 @@ public class ConsoleCommandSender implements CommandSender {
 
 	@Override
 	public void sendMessage(String message) {
-		ServerUI.append(message, Color.darkGray);
+		Fusster.append(message, Color.darkGray);
 	}
 
 	@Override

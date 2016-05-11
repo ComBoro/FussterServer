@@ -24,20 +24,17 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 
-import eu.fusster.ui.ServerUI;
-
+/**
+ * A file/directory loader that uses the path_bin where the .jar was ran from.
+ */
 public class Loader {
 
-	String path;
-
-	/**
-	 * A file/directory loader that uses the path where the .jar was ran from.
-	 */
-	public Loader() {
-		File f = new File(System.getProperty("java.class.path"));
-		File dir = f.getAbsoluteFile().getParentFile();
-		path = dir.toString().split(";")[0];
-	}
+	public static final String path_bin = new File(
+			System.getProperty("java.class.path")
+			).getAbsoluteFile().getParentFile().toString().split(";")[0];
+	
+	public static final String path_src = new File(path_bin).getParent()
+			+ "/src/";
 
 	/**
 	 * Loads a file with a specific name and if there s no file it creates new
@@ -46,16 +43,16 @@ public class Loader {
 	 *            the name of the file
 	 * @return the actual {@link File}
 	 */
-	public File loadFile(String name) {
+	public static File loadFile(String name) {
 		try {
-			File file = new File(path, name);
+			File file = new File(path_bin, name);
 
 			if (!file.exists())
 				file.createNewFile();
 			return file;
 		} catch (IOException io) {
 			io.printStackTrace();
-			ServerUI.error(io.getMessage());
+			Fusster.error(io.getMessage());
 			return null;
 		}
 	}
@@ -68,8 +65,8 @@ public class Loader {
 	 *            the name of the directory
 	 * @return the actual {@link File}
 	 */
-	public File loadDirectory(String name) {
-		File file = new File(path, name);
+	public static File loadDirectory(String name) {
+		File file = new File(path_bin, name);
 
 		if (file.exists())
 			if (file.isDirectory())
@@ -78,13 +75,9 @@ public class Loader {
 		file.mkdir();
 		return file;
 	}
-	
-	public static Image loadImage(String path) throws NullPointerException{
-		return Toolkit.getDefaultToolkit().getImage(path);
-	}
 
-	public String getPath() {
-		return path;
+	public static Image loadImage(String path) throws NullPointerException {
+		return Toolkit.getDefaultToolkit().getImage(path);
 	}
 
 }

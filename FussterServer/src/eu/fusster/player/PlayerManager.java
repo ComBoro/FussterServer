@@ -19,9 +19,8 @@
 
 package eu.fusster.player;
 
-import static eu.fusster.ui.ServerUI.append;
-import static eu.fusster.ui.ServerUI.error;
-import static eu.fusster.ui.ServerUI.updateUsernameArea;
+import static eu.fusster.Fusster.append;
+import static eu.fusster.Fusster.error;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,7 +33,6 @@ import java.util.function.Consumer;
 import eu.fusster.Fusster;
 import eu.fusster.player.event.PlayerDisconnectEvent;
 import eu.fusster.player.event.PlayerJoinEvent;
-import eu.fusster.ui.ServerUI;
 
 /**
  * Class for managing players.
@@ -86,7 +84,7 @@ public class PlayerManager {
 
 			// Add to List and update UA
 			players.addElement(player);
-			ServerUI.updateUsernameArea();
+			Fusster.updatePlayersPane();
 		} else {
 			error("Player " + player.getName() + " was not added.");
 		}
@@ -128,7 +126,7 @@ public class PlayerManager {
 
 		// Remove from list
 		boolean status = players.removeElement(player);
-		updateUsernameArea();
+		Fusster.updatePlayersPane();
 
 		if (!status)
 			error("Failed to remove player " + name + " from list.");
@@ -138,7 +136,7 @@ public class PlayerManager {
 			player.closeConnection(event.getReason());
 
 		// Append to Console
-		ServerUI.append(event.getToAppend(), java.awt.Color.RED);
+		Fusster.append(event.getToAppend(), java.awt.Color.RED);
 
 		// Notify other people
 		sendAll(event.getToSend());
@@ -252,7 +250,7 @@ public class PlayerManager {
 			pl.closeConnection(message == null || message.equals("") ? "Server closing"
 					: message);
 		}
-		ServerUI.updateUsernameArea();
+		Fusster.updatePlayersPane();
 	}
 
 }

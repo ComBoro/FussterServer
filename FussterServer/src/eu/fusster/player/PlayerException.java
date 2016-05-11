@@ -19,7 +19,7 @@
 
 package eu.fusster.player;
 
-import eu.fusster.ui.ServerUI;
+import eu.fusster.Fusster;
 
 public class PlayerException extends Exception {
 	private static final long serialVersionUID = 1L;
@@ -38,7 +38,7 @@ public class PlayerException extends Exception {
 
 	@Override
 	public void printStackTrace() {
-		ServerUI.append(super.getMessage());
+		Fusster.append(super.getMessage());
 	}
 
 }

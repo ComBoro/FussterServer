@@ -123,4 +123,6 @@ public class Player implements CommandSender, ClientListener, Comparable<Player>
 		return 31*name.compareTo(other.getName()) + client.compareTo(other.client);
 	}
 
+	public void afterClose() {}
+
 }

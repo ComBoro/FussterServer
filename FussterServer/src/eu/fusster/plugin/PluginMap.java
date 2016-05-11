@@ -25,24 +25,58 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.JComponent;
+
+import eu.fusster.Fusster;
 import eu.fusster.command.Command;
 import eu.fusster.command.CommandMap;
 import eu.fusster.command.CommandSender;
 import eu.fusster.player.Player;
 import eu.fusster.player.event.PlayerDisconnectEvent;
 import eu.fusster.player.event.PlayerJoinEvent;
-import eu.fusster.ui.ServerUI;
 
 public class PluginMap {
 
-	private Map<FussterPlugin, Set<Command>> synmap;
+	private Map<FussterPlugin, Set<Object>> synmap;
 
 	/**
 	 * Generates an empty synchronised map.
 	 */
 	public PluginMap() {
 		synmap = Collections
-				.synchronizedMap(new HashMap<FussterPlugin, Set<Command>>());
+				.synchronizedMap(new HashMap<FussterPlugin, Set<Object>>());
+	}
+
+	/**
+	 * Links an Object to a FussterPlugin
+	 * 
+	 * @param plugin
+	 *            The plugin the object is going to be linked with
+	 * @param link
+	 *            The actual object being linked
+	 */
+	public void link(FussterPlugin plugin, Object link) {
+		if (!synmap.containsKey(plugin))
+			register(plugin);
+		synmap.get(plugin).add(link);
+	}
+
+	/**
+	 * Unlinks an {@link Object} from a {@link FussterPlugin}
+	 * 
+	 * @param plugin
+	 *            The plugin the object is going to be unlicked from
+	 * @param link
+	 *            The actual object being unlinked
+	 */
+	public void unlink(FussterPlugin plugin, Object link) {
+		if (synmap.containsKey(plugin))
+			synmap.get(plugin).remove(link);
+	}
+
+	public void clear() {
+		getPlugins().forEach(this::unregister);
+		synmap.clear();
 	}
 
 	/**
@@ -55,7 +89,7 @@ public class PluginMap {
 		synchronized (synmap) {
 			if (synmap.containsKey(toRegister))
 				return;
-			synmap.put(toRegister, new HashSet<Command>());
+			synmap.put(toRegister, new HashSet<Object>());
 		}
 	}
 
@@ -66,10 +100,37 @@ public class PluginMap {
 	 *            The plugin to unregister
 	 */
 	public void unregister(FussterPlugin plugin) {
+		unregister(plugin, false);
+	}
+
+	/**
+	 * Unregisters a plugin from the map.
+	 * 
+	 * @param plugin
+	 *            The plugin to unregister
+	 * @param remove
+	 *            if it should be removed from the map as well
+	 */
+	public void unregister(FussterPlugin plugin, boolean remove) {
 		synchronized (synmap) {
 			if (!synmap.containsKey(plugin))
 				return;
-			synmap.remove(plugin);
+			for (Object object : synmap.get(plugin)) {
+				if (object instanceof JComponent) { // Remove plugin created
+													// tabs
+					Fusster.getServerUI().getConsoleTabbedPane()
+							.remove((JComponent) object);
+				} else if (object instanceof String) { // Remove potencial
+														// properties
+					String str = (String) object;
+					if (Fusster.containsKey(str))
+						Fusster.getProperties().remove(str);
+				}
+			}
+
+			// Remove from map
+			if (remove)
+				synmap.remove(plugin);
 		}
 	}
 
@@ -87,7 +148,7 @@ public class PluginMap {
 	 * @return The whole map of plugins and commands
 	 * @see #getPlugins() if you want to get only the set of plugins
 	 */
-	public Map<FussterPlugin, Set<Command>> getMap() {
+	public Map<FussterPlugin, Set<Object>> getMap() {
 		synchronized (synmap) {
 			return synmap;
 		}
@@ -104,14 +165,14 @@ public class PluginMap {
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		synchronized (synmap) {
 			for (FussterPlugin fp : synmap.keySet())
-				if(fp instanceof ServerPlugin)
-				try {
-					((ServerPlugin)fp).onPlayerJoinEvent(event);
-				} catch (Exception exception) {
-					ServerUI.debug(fp,
-							"Problem with Player Join Event. Message: "
-									+ exception.getMessage());
-				}
+				if (fp instanceof ServerPlugin)
+					try {
+						((ServerPlugin) fp).onPlayerJoinEvent(event);
+					} catch (Exception exception) {
+						Fusster.debug(fp,
+								"Problem with Player Join Event. Message: "
+										+ exception.getMessage());
+					}
 		}
 	}
 
@@ -139,7 +200,7 @@ public class PluginMap {
 					}
 				} catch (Exception exception) {
 					success = false;
-					ServerUI.debug(fp, " Error executing command with label: "
+					Fusster.debug(fp, " Error executing command with label: "
 							+ label + ", args: " + args.toString()
 							+ ". Message: " + exception.getMessage());
 				}
@@ -159,14 +220,14 @@ public class PluginMap {
 	public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
 		synchronized (synmap) {
 			for (FussterPlugin fp : synmap.keySet())
-				if(fp instanceof ServerPlugin)
-				try {
-					((ServerPlugin)fp).onPlayerDisconnectEvent(event);
-				} catch (Exception exception) {
-					ServerUI.debug(fp,
-							"Problem with Player Disconnect Event. Message: "
-									+ exception.getMessage());
-				}
+				if (fp instanceof ServerPlugin)
+					try {
+						((ServerPlugin) fp).onPlayerDisconnectEvent(event);
+					} catch (Exception exception) {
+						Fusster.debug(fp,
+								"Problem with Player Disconnect Event. Message: "
+										+ exception.getMessage());
+					}
 		}
 	}
 
@@ -240,8 +301,11 @@ public class PluginMap {
 	 */
 	public void unrgisterAllCommands(FussterPlugin plugin) {
 		synchronized (synmap) {
-			for (Command command : synmap.get(plugin)) {
-				CommandMap.unregister(command);
+			for (Object object : synmap.get(plugin)) {
+				if (object instanceof Command) {
+					CommandMap.unregister((Command) object);
+				}
+
 			}
 			synmap.get(plugin).clear();
 			synmap.remove(plugin);
@@ -255,7 +319,12 @@ public class PluginMap {
 	 */
 	public Set<Command> getRegisteredCommands(FussterPlugin plugin) {
 		synchronized (synmap) {
-			return synmap.get(plugin);
+			Set<Command> cmds = new HashSet<>();
+			for (Object object : synmap.get(plugin)) {
+				if (object instanceof Command)
+					cmds.add((Command) object);
+			}
+			return cmds;
 		}
 	}
 

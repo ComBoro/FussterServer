@@ -32,7 +32,6 @@ import eu.fusster.command.defaults.ServerInfoCommand;
 import eu.fusster.command.defaults.ThisCommand;
 import eu.fusster.command.defaults.UnbanCommand;
 import eu.fusster.player.Player;
-import eu.fusster.ui.ServerUI;
 
 public class CommandMap {
 	
@@ -99,8 +98,8 @@ public class CommandMap {
 			return;
 		}
 		
-		ServerUI.append("Command: " + commandLine, Color.GRAY, true);
-		ServerUI.append("Sender: " + sender.getName(), Color.GRAY, true);
+		Fusster.debug("Command: " + commandLine, Color.GRAY);
+		Fusster.debug("Sender: " + sender.getName(), Color.GRAY);
 
 		String[] args = commandLine.split(sender.getSeparator());
 
@@ -117,7 +116,7 @@ public class CommandMap {
 			boolean result = Fusster.getPluginMap().onCommand(sender, args[0],
 					Arrays.copyOfRange(args, 1, args.length));
 			if (!result)
-				ServerUI.append(sender.getName() + " send invalid command.");
+				Fusster.append(sender.getName() + " send invalid command.");
 		}
 	}
 

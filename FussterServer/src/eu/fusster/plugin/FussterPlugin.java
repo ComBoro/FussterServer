@@ -33,10 +33,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
+import javax.swing.JComponent;
+
 import eu.fusster.Fusster;
 import eu.fusster.command.Command;
 import eu.fusster.command.CommandSender;
-import eu.fusster.ui.ServerUI;
 
 /**
  * An abstract class used to represent any non-server file that is loaded into
@@ -73,7 +74,7 @@ public abstract class FussterPlugin {
 		try {
 			onEnable();
 		} catch (Exception e) {
-			ServerUI.append("Error loading plugin "
+			Fusster.error("Error loading plugin "
 					+ getDescription().getName());
 		}
 	}
@@ -103,7 +104,7 @@ public abstract class FussterPlugin {
 	protected abstract void onEnable() throws Exception;
 
 	/**
-	 * Called when the plugin was unloaded from the runtime.
+	 * Called when the plugin gets unloaded from the runtime.
 	 * 
 	 * @see PluginLoader#unload(FussterPlugin)
 	 */
@@ -119,6 +120,33 @@ public abstract class FussterPlugin {
 	 */
 	protected final void registerCommand(String label, Command command) {
 		Fusster.getPluginMap().registerCommand(this, command, label);
+	}
+	
+	
+	/**
+	 * Registers a key and a value saved in the the default auto respond list
+	 * 
+	 * @param key
+	 *            The key that represents a command label
+	 * @param value
+	 *            The value linked with the key
+	 */
+	protected final void registerPropertie(String key, String value){
+		Fusster.getProperties().put(key, value);
+		Fusster.getPluginMap().link(this, key);
+	}
+	
+	/**
+	 * Used to register a JComponent onto the ConsoleTabbedPane in the GUI
+	 * 
+	 * @param label
+	 *            The label of the JComponent as it would be displayed
+	 * @param component
+	 *            The actual JComponent that will be added
+	 */
+	protected final void registerTab(String label, JComponent component){
+		Fusster.getServerUI().getConsoleTabbedPane().add(label, component);
+		Fusster.getPluginMap().link(this, component);
 	}
 
 	/**

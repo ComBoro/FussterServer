@@ -33,10 +33,7 @@ import java.io.InputStreamReader;
  */
 public class PluginDescription {
 
-	private String name;
-	private String version;
-	private String mainClass;
-	private String author;
+	private String name, version, mainClass, author;
 
 	public PluginDescription(InputStream stream) throws PluginException {
 		InputStreamReader reader = new InputStreamReader(stream);
@@ -92,5 +89,5 @@ public class PluginDescription {
 	public String getMain() {
 		return mainClass;
 	}
-
+	
 }

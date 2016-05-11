@@ -19,10 +19,10 @@
 
 package eu.fusster.command.defaults;
 
+import eu.fusster.Fusster;
 import eu.fusster.command.Command;
 import eu.fusster.command.CommandMap;
 import eu.fusster.command.CommandSender;
-import eu.fusster.ui.ServerUI;
 
 public class HelpCommand extends DefaultCommand {
 
@@ -57,7 +57,7 @@ public class HelpCommand extends DefaultCommand {
 		}
 
 		if (listAll)
-			ServerUI.append("Listing all hidden & unhidden commands");
+			Fusster.append("Listing all hidden & unhidden commands");
 		sender.sendMessage("List of Commands: ");
 		for (int i = 0; i < CommandMap.getCommands().values().size(); i++) {
 			Command command = (Command) CommandMap.getCommands().values()

@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import eu.fusster.Fusster;
 import eu.fusster.Loader;
-import eu.fusster.ui.ServerUI;
 
 public class PluginLoader {
 
@@ -47,18 +47,18 @@ public class PluginLoader {
 	 *            The loader that loads files
 	 * @see #listJars()
 	 */
-	public PluginLoader(PluginMap pluginMap, Loader loader) {
+	public PluginLoader(PluginMap pluginMap) {
 		this.pluginMap = pluginMap;
 
-		directory = loader.loadDirectory("plugins");
+		directory = Loader.loadDirectory("plugins");
 
-		listJars();
+		listJars(directory);
 	}
 
 	/**
 	 * Lists all the files ending in .jar
 	 */
-	private void listJars() {
+	private File[] listJars(File directory) {
 		File[] files = directory.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
@@ -68,13 +68,12 @@ public class PluginLoader {
 				return false;
 			}
 		});
-
-		if (files.length == 0)
-			return;
-
+		
 		for (File file : files)
 			if (!this.jars.containsKey(file))
 				this.jars.put(file, false);
+		
+		return files;	
 	}
 
 	/**
@@ -95,16 +94,21 @@ public class PluginLoader {
 	/**
 	 * Lists all the files and loads all the plugins that are not loaded
 	 */
-	public void loadAll() {
-		listJars();
+	public void loadAll(File directory) {
+		if(!directory.isDirectory()) return;
+		listJars(directory);
 		for (File file : jars.keySet()) {
 			if (!jars.get(file).booleanValue())
 				try {
 					load(file);
 				} catch (PluginException e) {
-					ServerUI.error(e.getMessage());
+					Fusster.error(e.getMessage());
 				}
 		}
+	}
+	
+	public void loadAll(){
+		this.loadAll(directory);
 	}
 
 	/**
@@ -112,7 +116,7 @@ public class PluginLoader {
 	 */
 	public void unloadAll() {
 		pluginMap.getPlugins().forEach(pl -> rawUnload(pl));
-		pluginMap.getMap().clear();
+		pluginMap.clear();
 		jars.clear();
 	}
 	
@@ -179,7 +183,7 @@ public class PluginLoader {
 	public void unload(FussterPlugin plugin) {
 		rawUnload(plugin);
 		pluginMap.unrgisterAllCommands(plugin);
-		pluginMap.unregister(plugin);
+		pluginMap.unregister(plugin, true);
 	}
 
 	/**
@@ -195,9 +199,8 @@ public class PluginLoader {
 			return;
 		try {
 			plugin.onDisable();
-			plugin.readDefaultConfig().close();
 		} catch (Exception e) {
-			ServerUI.debug("Error disabling plugin "
+			Fusster.debug("Error disabling plugin "
 					+ plugin.getDescription().getName()
 					+ ". Moving on regardless...");
 		}
@@ -218,6 +221,8 @@ public class PluginLoader {
 	public FussterPlugin load(File file) throws PluginException {
 		if (!file.exists() || file.isDirectory())
 			throw new PluginException("File not found", file.getName());
+		if(!getFileExtension(file).equals("jar"))
+			throw new PluginException("Invalid file format", file.getName());
 
 		try {
 			PluginDescription description = getDescription(file);

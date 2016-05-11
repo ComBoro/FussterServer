@@ -7,7 +7,6 @@ import eu.fusster.ServerInfo;
 import eu.fusster.command.CommandSender;
 import eu.fusster.command.ConsoleCommandSender;
 import eu.fusster.player.PlayerManager;
-import eu.fusster.ui.ServerUI;
 
 public class ThisCommand extends DefaultCommand {
 
@@ -83,7 +82,7 @@ public class ThisCommand extends DefaultCommand {
 				}
 			} else
 				sender.sendMessage("Invalid arguments. Usage: /this sort <date,name>" );
-			ServerUI.updateUsernameArea();
+			Fusster.updatePlayersPane();
 			break;
 		default:
 			sender.sendMessage("Usage: " + getUsageMessage());
@@ -93,8 +92,8 @@ public class ThisCommand extends DefaultCommand {
 		return false;
 	}
 	
-	private static void clear(){
-		Fusster.getServerUI().getConsoleArea().setText(null);
+	public static void clear(){
+		Fusster.getServerUI().clearCommandLine();
 		Runtime.getRuntime().gc();
 	}
 	
