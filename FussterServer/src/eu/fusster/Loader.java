@@ -30,32 +30,11 @@ import java.io.IOException;
 public class Loader {
 
 	public static final String path_bin = new File(
-			System.getProperty("java.class.path")
-			).getAbsoluteFile().getParentFile().toString().split(";")[0];
-	
+			System.getProperty("java.class.path")).getAbsoluteFile()
+			.getParentFile().toString().split(";")[0];
+
 	public static final String path_src = new File(path_bin).getParent()
 			+ "/src/";
-
-	/**
-	 * Loads a file with a specific name and if there s no file it creates new
-	 * 
-	 * @param name
-	 *            the name of the file
-	 * @return the actual {@link File}
-	 */
-	public static File loadFile(String name) {
-		try {
-			File file = new File(path_bin, name);
-
-			if (!file.exists())
-				file.createNewFile();
-			return file;
-		} catch (IOException io) {
-			io.printStackTrace();
-			Fusster.error(io.getMessage());
-			return null;
-		}
-	}
 
 	/**
 	 * Loads a directory with a specific name and if there s no directory it
@@ -74,6 +53,26 @@ public class Loader {
 
 		file.mkdir();
 		return file;
+	}
+
+	/**
+	 * Loads a file with a specific name and if there s no file it creates new
+	 * 
+	 * @param name
+	 *            the name of the file
+	 * @return the actual {@link File}
+	 */
+	public static File loadFile(String name) {
+		try {
+			File file = new File(path_bin, name);
+
+			if (!file.exists())
+				file.createNewFile();
+			return file;
+		} catch (IOException io) {
+			io.printStackTrace();
+			return null;
+		}
 	}
 
 	public static Image loadImage(String path) throws NullPointerException {

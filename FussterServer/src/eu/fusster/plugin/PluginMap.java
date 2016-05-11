@@ -47,100 +47,10 @@ public class PluginMap {
 				.synchronizedMap(new HashMap<FussterPlugin, Set<Object>>());
 	}
 
-	/**
-	 * Links an Object to a FussterPlugin
-	 * 
-	 * @param plugin
-	 *            The plugin the object is going to be linked with
-	 * @param link
-	 *            The actual object being linked
-	 */
-	public void link(FussterPlugin plugin, Object link) {
-		if (!synmap.containsKey(plugin))
-			register(plugin);
-		synmap.get(plugin).add(link);
-	}
-
-	/**
-	 * Unlinks an {@link Object} from a {@link FussterPlugin}
-	 * 
-	 * @param plugin
-	 *            The plugin the object is going to be unlicked from
-	 * @param link
-	 *            The actual object being unlinked
-	 */
-	public void unlink(FussterPlugin plugin, Object link) {
-		if (synmap.containsKey(plugin))
-			synmap.get(plugin).remove(link);
-	}
-
 	public void clear() {
 		getPlugins().forEach(this::unregister);
+
 		synmap.clear();
-	}
-
-	/**
-	 * Registers a plugin into the map with an empty set of commands.
-	 * 
-	 * @param toRegister
-	 *            The plugin to register
-	 */
-	public void register(FussterPlugin toRegister) {
-		synchronized (synmap) {
-			if (synmap.containsKey(toRegister))
-				return;
-			synmap.put(toRegister, new HashSet<Object>());
-		}
-	}
-
-	/**
-	 * Unregisters a plugin from the map.
-	 * 
-	 * @param plugin
-	 *            The plugin to unregister
-	 */
-	public void unregister(FussterPlugin plugin) {
-		unregister(plugin, false);
-	}
-
-	/**
-	 * Unregisters a plugin from the map.
-	 * 
-	 * @param plugin
-	 *            The plugin to unregister
-	 * @param remove
-	 *            if it should be removed from the map as well
-	 */
-	public void unregister(FussterPlugin plugin, boolean remove) {
-		synchronized (synmap) {
-			if (!synmap.containsKey(plugin))
-				return;
-			for (Object object : synmap.get(plugin)) {
-				if (object instanceof JComponent) { // Remove plugin created
-													// tabs
-					Fusster.getServerUI().getConsoleTabbedPane()
-							.remove((JComponent) object);
-				} else if (object instanceof String) { // Remove potencial
-														// properties
-					String str = (String) object;
-					if (Fusster.containsKey(str))
-						Fusster.getProperties().remove(str);
-				}
-			}
-
-			// Remove from map
-			if (remove)
-				synmap.remove(plugin);
-		}
-	}
-
-	/**
-	 * @return The set of plugins
-	 */
-	public Set<FussterPlugin> getPlugins() {
-		synchronized (synmap) {
-			return synmap.keySet();
-		}
 	}
 
 	/**
@@ -155,25 +65,60 @@ public class PluginMap {
 	}
 
 	/**
-	 * Notifies all the server plugins that a player has joined
+	 * Tries to get a plugin from the list
 	 * 
-	 * @param event
-	 *            The {@link PlayerJoinEvent} that is made for the
-	 *            {@link Player}
-	 * @see PlayerJoinEvent
+	 * @param name
+	 *            The name of the plugin
+	 * @return The plugin found by the name given
+	 * @throws PluginException
+	 *             if there is no plugin found
 	 */
-	public void onPlayerJoinEvent(PlayerJoinEvent event) {
+	public FussterPlugin getPlugin(String name) throws PluginException {
 		synchronized (synmap) {
-			for (FussterPlugin fp : synmap.keySet())
-				if (fp instanceof ServerPlugin)
-					try {
-						((ServerPlugin) fp).onPlayerJoinEvent(event);
-					} catch (Exception exception) {
-						Fusster.debug(fp,
-								"Problem with Player Join Event. Message: "
-										+ exception.getMessage());
-					}
+			for (FussterPlugin plugin : getPlugins())
+				if (plugin.getDescription().getName().equals(name))
+					return plugin;
+			throw new PluginException("Plugin not found");
 		}
+	}
+
+	/**
+	 * @return The set of plugins
+	 */
+	public Set<FussterPlugin> getPlugins() {
+		synchronized (synmap) {
+			return synmap.keySet();
+		}
+	}
+
+	/**
+	 * @param plugin
+	 *            The plugin to list all the commands from
+	 * @return all the registered command by a plugin
+	 */
+	public Set<Command> getRegisteredCommands(FussterPlugin plugin) {
+		synchronized (synmap) {
+			Set<Command> cmds = new HashSet<>();
+			for (Object object : synmap.get(plugin)) {
+				if (object instanceof Command)
+					cmds.add((Command) object);
+			}
+			return cmds;
+		}
+	}
+
+	/**
+	 * Links an Object to a FussterPlugin
+	 * 
+	 * @param plugin
+	 *            The plugin the object is going to be linked with
+	 * @param link
+	 *            The actual object being linked
+	 */
+	public void link(FussterPlugin plugin, Object link) {
+		if (!synmap.containsKey(plugin))
+			register(plugin);
+		synmap.get(plugin).add(link);
 	}
 
 	/**
@@ -232,20 +177,38 @@ public class PluginMap {
 	}
 
 	/**
-	 * Tries to get a plugin from the list
+	 * Notifies all the server plugins that a player has joined
 	 * 
-	 * @param name
-	 *            The name of the plugin
-	 * @return The plugin found by the name given
-	 * @throws PluginException
-	 *             if there is no plugin found
+	 * @param event
+	 *            The {@link PlayerJoinEvent} that is made for the
+	 *            {@link Player}
+	 * @see PlayerJoinEvent
 	 */
-	public FussterPlugin getPlugin(String name) throws PluginException {
+	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		synchronized (synmap) {
-			for (FussterPlugin plugin : getPlugins())
-				if (plugin.getDescription().getName().equals(name))
-					return plugin;
-			throw new PluginException("Plugin not found");
+			for (FussterPlugin fp : synmap.keySet())
+				if (fp instanceof ServerPlugin)
+					try {
+						((ServerPlugin) fp).onPlayerJoinEvent(event);
+					} catch (Exception exception) {
+						Fusster.debug(fp,
+								"Problem with Player Join Event. Message: "
+										+ exception.getMessage());
+					}
+		}
+	}
+
+	/**
+	 * Registers a plugin into the map with an empty set of commands.
+	 * 
+	 * @param toRegister
+	 *            The plugin to register
+	 */
+	public void register(FussterPlugin toRegister) {
+		synchronized (synmap) {
+			if (synmap.containsKey(toRegister))
+				return;
+			synmap.put(toRegister, new HashSet<Object>());
 		}
 	}
 
@@ -269,6 +232,60 @@ public class PluginMap {
 				register(plugin);
 			synmap.get(plugin).add(command);
 			CommandMap.register(label, command);
+		}
+	}
+
+	/**
+	 * Unlinks an {@link Object} from a {@link FussterPlugin}
+	 * 
+	 * @param plugin
+	 *            The plugin the object is going to be unlicked from
+	 * @param link
+	 *            The actual object being unlinked
+	 */
+	public void unlink(FussterPlugin plugin, Object link) {
+		if (synmap.containsKey(plugin))
+			synmap.get(plugin).remove(link);
+	}
+
+	/**
+	 * Unregisters a plugin from the map.
+	 * 
+	 * @param plugin
+	 *            The plugin to unregister
+	 */
+	public void unregister(FussterPlugin plugin) {
+		unregister(plugin, false);
+	}
+
+	/**
+	 * Unregisters a plugin from the map.
+	 * 
+	 * @param plugin
+	 *            The plugin to unregister
+	 * @param remove
+	 *            if it should be removed from the map as well
+	 */
+	public void unregister(FussterPlugin plugin, boolean remove) {
+		synchronized (synmap) {
+			if (!synmap.containsKey(plugin))
+				return;
+			for (Object object : synmap.get(plugin)) {
+				if (object instanceof JComponent) { // Remove plugin created
+													// tabs
+					Fusster.getServerUI().getConsoleTabbedPane()
+							.remove((JComponent) object);
+				} else if (object instanceof String) { // Remove potencial
+														// properties
+					String str = (String) object;
+					if (Fusster.containsKey(str))
+						Fusster.getProperties().remove(str);
+				}
+			}
+
+			// Remove from map
+			if (remove)
+				synmap.remove(plugin);
 		}
 	}
 
@@ -309,22 +326,6 @@ public class PluginMap {
 			}
 			synmap.get(plugin).clear();
 			synmap.remove(plugin);
-		}
-	}
-
-	/**
-	 * @param plugin
-	 *            The plugin to list all the commands from
-	 * @return all the registered command by a plugin
-	 */
-	public Set<Command> getRegisteredCommands(FussterPlugin plugin) {
-		synchronized (synmap) {
-			Set<Command> cmds = new HashSet<>();
-			for (Object object : synmap.get(plugin)) {
-				if (object instanceof Command)
-					cmds.add((Command) object);
-			}
-			return cmds;
 		}
 	}
 

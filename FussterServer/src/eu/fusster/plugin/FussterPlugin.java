@@ -60,6 +60,56 @@ public abstract class FussterPlugin {
 		((PluginClassLoader) classLoader).initialize(this);
 	}
 
+	/**
+	 * The data folder that the plugin has by default.
+	 * 
+	 * @return The Data Folder that corresponds to the plugin. Usually the
+	 *         default data folder contains the default config file
+	 */
+	protected final File getDataFolder() {
+		return dataFolder;
+	}
+
+	/**
+	 * The default config corresponding to the server.
+	 * 
+	 * @return The default file named "default.cfg" located in the data folder
+	 * @see #getDataFolder()
+	 */
+	protected final File getDefaultConfig() {
+		return defaultConfig;
+	}
+
+	/**
+	 * Obtain the {@link PluginDescription} used in the Plugin.
+	 * 
+	 * @return The default {@link PluginDescription} used in the creating of the
+	 *         plugin
+	 * @see PluginDescription
+	 */
+	public final PluginDescription getDescription() {
+		return description;
+	}
+
+	/**
+	 * Obtain the actual file that the plugin was loaded from.
+	 * 
+	 * @return The .jar file that is the plugin
+	 */
+	public final File getFile() {
+		return file;
+	}
+
+	/**
+	 * 
+	 * @return The {@link ClassLoader} used to load that class. If loaded
+	 *         correctly this must return an instance of
+	 *         {@link PluginClassLoader}
+	 */
+	public final ClassLoader getLoader() {
+		return classLoader;
+	}
+
 	protected final void initialize(PluginLoader loader,
 			PluginDescription description, File file, File dataFolder,
 			File defaultConfig, ClassLoader classLoader) {
@@ -74,8 +124,7 @@ public abstract class FussterPlugin {
 		try {
 			onEnable();
 		} catch (Exception e) {
-			Fusster.error("Error loading plugin "
-					+ getDescription().getName());
+			Fusster.error("Error loading plugin " + getDescription().getName());
 		}
 	}
 
@@ -97,12 +146,6 @@ public abstract class FussterPlugin {
 	protected abstract boolean onCommand(CommandSender sender, String label,
 			String[] args) throws Exception;
 
-	// Plugin events
-	/**
-	 * Called when the plugin was successfully loaded into the runtime.
-	 */
-	protected abstract void onEnable() throws Exception;
-
 	/**
 	 * Called when the plugin gets unloaded from the runtime.
 	 * 
@@ -110,54 +153,11 @@ public abstract class FussterPlugin {
 	 */
 	protected abstract void onDisable() throws Exception;
 
+	// Plugin events
 	/**
-	 * Used to register a command to the {@link PluginMap}
-	 * 
-	 * @param label
-	 *            The label of the command as it would want to be called
-	 * @param command
-	 *            The actual command instance corresponding to the label
+	 * Called when the plugin was successfully loaded into the runtime.
 	 */
-	protected final void registerCommand(String label, Command command) {
-		Fusster.getPluginMap().registerCommand(this, command, label);
-	}
-	
-	
-	/**
-	 * Registers a key and a value saved in the the default auto respond list
-	 * 
-	 * @param key
-	 *            The key that represents a command label
-	 * @param value
-	 *            The value linked with the key
-	 */
-	protected final void registerPropertie(String key, String value){
-		Fusster.getProperties().put(key, value);
-		Fusster.getPluginMap().link(this, key);
-	}
-	
-	/**
-	 * Used to register a JComponent onto the ConsoleTabbedPane in the GUI
-	 * 
-	 * @param label
-	 *            The label of the JComponent as it would be displayed
-	 * @param component
-	 *            The actual JComponent that will be added
-	 */
-	protected final void registerTab(String label, JComponent component){
-		Fusster.getServerUI().getConsoleTabbedPane().add(label, component);
-		Fusster.getPluginMap().link(this, component);
-	}
-
-	/**
-	 * The default config corresponding to the server.
-	 * 
-	 * @return The default file named "default.cfg" located in the data folder
-	 * @see #getDataFolder()
-	 */
-	protected final File getDefaultConfig() {
-		return defaultConfig;
-	}
+	protected abstract void onEnable() throws Exception;
 
 	/**
 	 * The default created {@link BufferedReader} using the input stream of the
@@ -180,15 +180,56 @@ public abstract class FussterPlugin {
 			throw new NullPointerException("The config reader is null");
 		return new BufferedReader(new FileReader(defaultConfig));
 	}
-	
+
 	/**
 	 * Reads the config and returns all the lines in the default config file
 	 * 
 	 * @return All the lines in the default config file
-	 * @throws IOException  if an I/O error occurs reading from the file or a malformed or unmappable byte sequence is read
+	 * @throws IOException
+	 *             if an I/O error occurs reading from the file or a malformed
+	 *             or unmappable byte sequence is read
 	 */
-	protected final java.util.List<String> readDefaultConfigAllLines() throws IOException{
+	protected final java.util.List<String> readDefaultConfigAllLines()
+			throws IOException {
 		return Files.readAllLines(defaultConfigPath);
+	}
+
+	/**
+	 * Used to register a command to the {@link PluginMap}
+	 * 
+	 * @param label
+	 *            The label of the command as it would want to be called
+	 * @param command
+	 *            The actual command instance corresponding to the label
+	 */
+	protected final void registerCommand(String label, Command command) {
+		Fusster.getPluginMap().registerCommand(this, command, label);
+	}
+
+	/**
+	 * Registers a key and a value saved in the the default auto respond list
+	 * 
+	 * @param key
+	 *            The key that represents a command label
+	 * @param value
+	 *            The value linked with the key
+	 */
+	protected final void registerPropertie(String key, String value) {
+		Fusster.getProperties().put(key, value);
+		Fusster.getPluginMap().link(this, key);
+	}
+
+	/**
+	 * Used to register a JComponent onto the ConsoleTabbedPane in the GUI
+	 * 
+	 * @param label
+	 *            The label of the JComponent as it would be displayed
+	 * @param component
+	 *            The actual JComponent that will be added
+	 */
+	protected final void registerTab(String label, JComponent component) {
+		Fusster.getServerUI().getConsoleTabbedPane().add(label, component);
+		Fusster.getPluginMap().link(this, component);
 	}
 
 	/**
@@ -241,46 +282,6 @@ public abstract class FussterPlugin {
 			throws NullPointerException, IOException {
 		Files.write(Paths.get(defaultConfig.toURI()), Arrays.asList(text),
 				Charset.forName("UTF-8"), StandardOpenOption.APPEND);
-	}
-
-	/**
-	 * The data folder that the plugin has by default.
-	 * 
-	 * @return The Data Folder that corresponds to the plugin. Usually the
-	 *         default data folder contains the default config file
-	 */
-	protected final File getDataFolder() {
-		return dataFolder;
-	}
-
-	/**
-	 * Obtain the actual file that the plugin was loaded from.
-	 * 
-	 * @return The .jar file that is the plugin
-	 */
-	public final File getFile() {
-		return file;
-	}
-
-	/**
-	 * Obtain the {@link PluginDescription} used in the Plugin.
-	 * 
-	 * @return The default {@link PluginDescription} used in the creating of the
-	 *         plugin
-	 * @see PluginDescription
-	 */
-	public final PluginDescription getDescription() {
-		return description;
-	}
-
-	/**
-	 * 
-	 * @return The {@link ClassLoader} used to load that class. If loaded
-	 *         correctly this must return an instance of
-	 *         {@link PluginClassLoader}
-	 */
-	public final ClassLoader getLoader() {
-		return classLoader;
 	}
 
 }

@@ -57,18 +57,18 @@ public class PlayerJoinEvent {
 	}
 
 	/**
+	 * @return the String being send to all other users
+	 */
+	public String getToSend() {
+		return toSend;
+	}
+
+	/**
 	 * @param toAppend
 	 *            the new String that will be appended in the console
 	 */
 	public void setToAppend(String toAppend) {
 		this.toAppend = toAppend;
-	}
-
-	/**
-	 * @return the String being send to all other users
-	 */
-	public String getToSend() {
-		return toSend;
 	}
 
 	/**

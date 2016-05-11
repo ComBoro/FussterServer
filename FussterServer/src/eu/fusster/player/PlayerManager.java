@@ -41,22 +41,21 @@ import eu.fusster.player.event.PlayerJoinEvent;
 public class PlayerManager {
 
 	private static Vector<Player> players = new Vector<Player>();
-	
-	public static final Comparator<Player> BY_NAME = new Comparator<Player>(){
+
+	public static final Comparator<Player> BY_NAME = new Comparator<Player>() {
+		@Override
 		public int compare(Player arg0, Player arg1) {
 			return arg0.compareTo(arg1);
 		}
 	};
-	
-	public static final Comparator<Player> BY_DATE_CONNECTED = new Comparator<Player>(){
+
+	public static final Comparator<Player> BY_DATE_CONNECTED = new Comparator<Player>() {
+		@Override
 		public int compare(Player arg0, Player arg1) {
-			return arg0.client.dateCreated().compareTo(arg1.client.dateCreated());
+			return arg0.client.dateCreated().compareTo(
+					arg1.client.dateCreated());
 		}
 	};
-	
-	public static void sort(Comparator<Player> comparator){
-		Collections.sort(players, comparator);
-	}
 
 	/**
 	 * Registers a player to the Collection of players. Notifies all the plugins
@@ -88,6 +87,91 @@ public class PlayerManager {
 		} else {
 			error("Player " + player.getName() + " was not added.");
 		}
+	}
+
+	/**
+	 * Checks if a name is available.
+	 * 
+	 * @param name
+	 *            The name to check
+	 * @return the result
+	 */
+	public static boolean checkAvailable(String name) {
+		return players.stream().parallel().map(e -> e.getName())
+				.filter(e -> e.equals(name)).count() == 0;
+	}
+
+	/**
+	 * Disconnects all the players with a given reason.
+	 * 
+	 * @param message
+	 *            the reason for the disconnect
+	 */
+	public static void disconnectAll(String message) {
+		Iterator<Player> it = players.iterator();
+		while (it.hasNext()) {
+			Player pl = it.next();
+			it.remove();
+			pl.closeConnection(message == null || message.equals("") ? "Server closing"
+					: message);
+		}
+		Fusster.updatePlayersPane();
+	}
+
+	/**
+	 * Executes a {@link Consumer} for all the players.
+	 * 
+	 * @param action
+	 *            The {@link Consumer} to execute
+	 */
+	public static void forEach(Consumer<? super Player> action) {
+		players.stream().parallel().forEach(action);
+	}
+
+	/**
+	 * Receives a name and returns a {@link Player} that was the same name.
+	 * 
+	 * @param name
+	 *            The player name
+	 * @return The player found by the name given
+	 * @throws PlayerException
+	 *             if no player was found
+	 */
+	public static Player get(String name) throws PlayerException {
+		for (Player pl : getPlayers())
+			if (pl.getName().equals(name))
+				return pl;
+		throw new PlayerException("Player not found");
+	}
+
+	/**
+	 * Returns all the players having the given InetAddress.
+	 * 
+	 * @param ip
+	 *            The InetAddress to filer players
+	 * @return All the players with the given InetAddress
+	 */
+	public static List<Player> getAll(String ip) {
+		return Arrays.asList((Player[]) players.stream()
+				.filter(player -> player.getIP().equals(ip)).toArray());
+	}
+
+	/**
+	 * @return The {@link Vector} of players
+	 */
+	public static Vector<Player> getPlayers() {
+		return players;
+	}
+
+	/**
+	 * Checks if an InetAddress is banned.
+	 * 
+	 * @param ip
+	 *            The InetAddress to check
+	 * @return if the InetAddress is banned
+	 */
+	public static boolean isBanned(String ip) {
+		return Fusster.getBanList().contains(ip);
 	}
 
 	/**
@@ -143,22 +227,6 @@ public class PlayerManager {
 	}
 
 	/**
-	 * Receives a name and returns a {@link Player} that was the same name.
-	 * 
-	 * @param name
-	 *            The player name
-	 * @return The player found by the name given
-	 * @throws PlayerException
-	 *             if no player was found
-	 */
-	public static Player get(String name) throws PlayerException {
-		for (Player pl : getPlayers())
-			if (pl.getName().equals(name))
-				return pl;
-		throw new PlayerException("Player not found");
-	}
-
-	/**
 	 * Sends a message to all players for the Collection of players.
 	 * 
 	 * @param toSend
@@ -184,73 +252,8 @@ public class PlayerManager {
 		}
 	}
 
-	/**
-	 * Returns all the players having the given InetAddress.
-	 * 
-	 * @param ip
-	 *            The InetAddress to filer players
-	 * @return All the players with the given InetAddress
-	 */
-	public static List<Player> getAll(String ip) {
-		return Arrays.asList((Player[]) players.stream()
-				.filter(player -> player.getIP().equals(ip)).toArray());
-	}
-
-	/**
-	 * Checks if a name is available.
-	 * 
-	 * @param name
-	 *            The name to check
-	 * @return the result
-	 */
-	public static boolean checkAvailable(String name) {
-		return players.stream().parallel().map(e -> e.getName())
-				.filter(e -> e.equals(name)).count() == 0;
-	}
-
-	/**
-	 * Checks if an InetAddress is banned.
-	 * 
-	 * @param ip
-	 *            The InetAddress to check
-	 * @return if the InetAddress is banned
-	 */
-	public static boolean isBanned(String ip) {
-		return Fusster.getBanList().contains(ip);
-	}
-
-	/**
-	 * @return The {@link Vector} of players
-	 */
-	public static Vector<Player> getPlayers() {
-		return players;
-	}
-
-	/**
-	 * Executes a {@link Consumer} for all the players.
-	 * 
-	 * @param action
-	 *            The {@link Consumer} to execute
-	 */
-	public static void forEach(Consumer<? super Player> action) {
-		players.stream().parallel().forEach(action);
-	}
-
-	/**
-	 * Disconnects all the players with a given reason.
-	 * 
-	 * @param message
-	 *            the reason for the disconnect
-	 */
-	public static void disconnectAll(String message) {
-		Iterator<Player> it = players.iterator();
-		while (it.hasNext()) {
-			Player pl = it.next();
-			it.remove();
-			pl.closeConnection(message == null || message.equals("") ? "Server closing"
-					: message);
-		}
-		Fusster.updatePlayersPane();
+	public static void sort(Comparator<Player> comparator) {
+		Collections.sort(players, comparator);
 	}
 
 }

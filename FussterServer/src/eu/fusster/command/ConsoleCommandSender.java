@@ -27,12 +27,11 @@ public class ConsoleCommandSender implements CommandSender {
 
 	private static ConsoleCommandSender sender = new ConsoleCommandSender();
 
-	private ConsoleCommandSender() {}
-
-	@Override
-	public void sendMessage(String message) {
-		Fusster.append(message, Color.darkGray);
+	public static ConsoleCommandSender getInstance() {
+		return sender;
 	}
+
+	private ConsoleCommandSender() {}
 
 	@Override
 	public String getName() {
@@ -44,8 +43,9 @@ public class ConsoleCommandSender implements CommandSender {
 		return " ";
 	}
 
-	public static ConsoleCommandSender getInstance() {
-		return sender;
+	@Override
+	public void sendMessage(String message) {
+		Fusster.append(message, Color.darkGray);
 	}
 
 }

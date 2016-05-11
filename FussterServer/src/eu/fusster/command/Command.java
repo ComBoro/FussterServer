@@ -51,20 +51,20 @@ public abstract class Command {
 	 */
 	public abstract boolean execute(CommandSender sender, String args[]);
 
-	public boolean isListable() {
-		return listable;
+	public String getDescription() {
+		return description;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public String getDescription() {
-		return description;
-	}
-
 	public String getUsageMessage() {
 		return usageMessage;
+	}
+
+	public boolean isListable() {
+		return listable;
 	}
 
 	@Override

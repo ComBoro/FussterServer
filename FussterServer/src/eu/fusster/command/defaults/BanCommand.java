@@ -65,9 +65,10 @@ public class BanCommand extends DefaultCommand {
 		}
 
 		Fusster.ban(toBanIP);
-		
-		PlayerManager.getAll(toBanIP).forEach(e -> PlayerManager.removePlayer(e, "You have been banned."));
-		
+
+		PlayerManager.getAll(toBanIP).forEach(
+				e -> PlayerManager.removePlayer(e, "You have been banned."));
+
 		sender.sendMessage("All clients with Internet Protocol " + toBanIP
 				+ " were banned from the server.");
 

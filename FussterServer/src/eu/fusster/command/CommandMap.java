@@ -34,7 +34,7 @@ import eu.fusster.command.defaults.UnbanCommand;
 import eu.fusster.player.Player;
 
 public class CommandMap {
-	
+
 	private static boolean commandRequested = false;
 	private static String command = "";
 	private static Object lock = new Object();
@@ -51,35 +51,6 @@ public class CommandMap {
 	}
 
 	/**
-	 * Registers a command.
-	 * 
-	 * @param label
-	 *            The label that the command wants to be called by
-	 * @param command
-	 *            The {@link Command} class representative
-	 * @return if the command was registered successfully
-	 */
-	public static boolean register(String label, Command command) {
-		label = label.toLowerCase().trim();
-		if (commands.containsKey(label) || commands.containsValue(command))
-			return false;
-		commands.put(label, command);
-		return true;
-	}
-
-	/**
-	 * Unregisters a command.
-	 * 
-	 * @param command
-	 *            The command class that will be unregistered
-	 */
-	public static void unregister(Command command) {
-		if (!commands.values().contains(command))
-			return;
-		commands.remove(commands.get(command));
-	}
-
-	/**
 	 * Executes the command and notifies all the plugins
 	 * 
 	 * @param sender
@@ -89,7 +60,7 @@ public class CommandMap {
 	 *            The raw command line enetered
 	 */
 	public static void dispatch(CommandSender sender, String commandLine) {
-		if(commandRequested){
+		if (commandRequested) {
 			commandRequested = false;
 			command = commandLine;
 			synchronized (lock) {
@@ -97,7 +68,7 @@ public class CommandMap {
 			}
 			return;
 		}
-		
+
 		Fusster.debug("Command: " + commandLine, Color.GRAY);
 		Fusster.debug("Sender: " + sender.getName(), Color.GRAY);
 
@@ -131,8 +102,12 @@ public class CommandMap {
 		Command target = commands.get(name.toLowerCase());
 		return target;
 	}
-	
-	public static String nextCommand(){
+
+	public static Map<String, Command> getCommands() {
+		return commands;
+	}
+
+	public static String nextCommand() {
 		commandRequested = true;
 		synchronized (lock) {
 			try {
@@ -145,8 +120,33 @@ public class CommandMap {
 		}
 	}
 
-	public static Map<String, Command> getCommands() {
-		return commands;
+	/**
+	 * Registers a command.
+	 * 
+	 * @param label
+	 *            The label that the command wants to be called by
+	 * @param command
+	 *            The {@link Command} class representative
+	 * @return if the command was registered successfully
+	 */
+	public static boolean register(String label, Command command) {
+		label = label.toLowerCase().trim();
+		if (commands.containsKey(label) || commands.containsValue(command))
+			return false;
+		commands.put(label, command);
+		return true;
+	}
+
+	/**
+	 * Unregisters a command.
+	 * 
+	 * @param command
+	 *            The command class that will be unregistered
+	 */
+	public static void unregister(Command command) {
+		if (!commands.values().contains(command))
+			return;
+		commands.remove(commands.get(command));
 	}
 
 }

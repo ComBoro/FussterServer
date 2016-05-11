@@ -10,7 +10,8 @@ import eu.fusster.Fusster;
 import eu.fusster.command.CommandMap;
 import eu.fusster.command.CommandSender;
 
-public class Player implements CommandSender, ClientListener, Comparable<Player> {
+public class Player implements CommandSender, ClientListener,
+		Comparable<Player> {
 
 	private String name;
 	public Client client;
@@ -41,17 +42,17 @@ public class Player implements CommandSender, ClientListener, Comparable<Player>
 		if (Fusster.getBanList().contains(getIP())
 				|| Fusster.getBanList().contains(name)) {
 			closeConnection(Fusster.BAN_MESSEGE);
-		} else if(PlayerManager.getPlayers().size() >= Fusster.getMaxPlayers()){
+		} else if (PlayerManager.getPlayers().size() >= Fusster.getMaxPlayers()) {
 			closeConnection("Server full.");
 		} else if (!PlayerManager.checkAvailable(name)) {
 			closeConnection("Duplicate name");
-		} else if(name.length() < 4 || name.length()>32){
+		} else if (name.length() < 4 || name.length() > 32) {
 			closeConnection("Invalid name lenght. Must be between 4 and 32 characters");
 		} else {
 			Pattern p = Pattern.compile("[a-zA-Z_0-9]");
 			Matcher m = p.matcher(name);
 			boolean b = m.find();
-			if(!b){
+			if (!b) {
 				closeConnection("Invalid name. Only letters and numbers allowed");
 			} else {
 				this.client.addListener(this);
@@ -62,21 +63,30 @@ public class Player implements CommandSender, ClientListener, Comparable<Player>
 
 	}
 
-	public void send(String string) {
-		client.send(string);
-	}
+	@Override
+	public void afterClose() {}
 
 	public void closeConnection(String reason) {
 		client.closeConnection(reason);
 	}
 
-	public String getIP() {
-		return client.getIP();
+	@Override
+	public int compareTo(Player other) {
+		return 31 * name.compareTo(other.getName())
+				+ client.compareTo(other.client);
 	}
 
 	@Override
-	public void sendMessage(String message) {
-		client.send("msg:" + message);
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Player))
+			return false;
+		Player other = (Player) obj;
+		return this.getName().equals(other.getName())
+				&& this.getIP().equals(other.getIP());
+	}
+
+	public String getIP() {
+		return client.getIP();
 	}
 
 	@Override
@@ -90,11 +100,8 @@ public class Player implements CommandSender, ClientListener, Comparable<Player>
 	}
 
 	@Override
-	public void onInput(String input) {
-		if (Fusster.containsKey(input)) 
-			client.send(Fusster.getProperty(input));
-		else
-			CommandMap.dispatch(this, input);
+	public int hashCode() {
+		return Objects.hash(client, name);
 	}
 
 	@Override
@@ -105,24 +112,20 @@ public class Player implements CommandSender, ClientListener, Comparable<Player>
 	}
 
 	@Override
-	public int hashCode() {
-		return Objects.hash(client, name);
+	public void onInput(String input) {
+		if (Fusster.containsKey(input))
+			client.send(Fusster.getProperty(input));
+		else
+			CommandMap.dispatch(this, input);
+	}
+
+	public void send(String string) {
+		client.send(string);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Player))
-			return false;
-		Player other = (Player) obj;
-		return this.getName().equals(other.getName())
-				&& this.getIP().equals(other.getIP());
+	public void sendMessage(String message) {
+		client.send("msg:" + message);
 	}
-
-	@Override
-	public int compareTo(Player other) {
-		return 31*name.compareTo(other.getName()) + client.compareTo(other.client);
-	}
-
-	public void afterClose() {}
 
 }

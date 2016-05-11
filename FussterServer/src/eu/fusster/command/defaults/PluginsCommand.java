@@ -36,6 +36,7 @@ public class PluginsCommand extends DefaultCommand {
 				"plugins load/reload/unload/info <plugin>");
 	}
 
+	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		int plugins = Fusster.getPluginMap().getPlugins().size();
 

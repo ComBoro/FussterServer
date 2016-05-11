@@ -10,11 +10,27 @@ import eu.fusster.player.PlayerManager;
 
 public class ThisCommand extends DefaultCommand {
 
+	public static void clear() {
+		Fusster.getServerUI().clearCommandLine();
+		Runtime.getRuntime().gc();
+	}
+
+	public static float usedMem() {
+		float usedMemBytes = Runtime.getRuntime().totalMemory() - Runtime
+				.getRuntime().freeMemory();
+		float usedMemMB = usedMemBytes / (1024 * 1024);
+		float usedMemMBrounded = BigDecimal.valueOf(usedMemMB)
+				.setScale(4, BigDecimal.ROUND_HALF_UP).floatValue();
+		return usedMemMBrounded;
+
+	}
+
 	public ThisCommand() {
 		super("ThisCommand", "Manipulated server information",
 				"this <properties/clear/name/version/mem/rst/sort>");
 	}
 
+	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		if (!(sender instanceof ConsoleCommandSender))
 			return false;
@@ -72,16 +88,16 @@ public class ThisCommand extends DefaultCommand {
 			clear();
 			break;
 		case "sort":
-			if(args.length > 1){
-				if(args[1].equals("date")){
+			if (args.length > 1) {
+				if (args[1].equals("date")) {
 					PlayerManager.sort(PlayerManager.BY_DATE_CONNECTED);
 					sender.sendMessage("Players sorted by connection date");
-				} else if(args[1].equals("name")){
+				} else if (args[1].equals("name")) {
 					PlayerManager.sort(PlayerManager.BY_NAME);
 					sender.sendMessage("Players sorted by name alhpabetically");
 				}
 			} else
-				sender.sendMessage("Invalid arguments. Usage: /this sort <date,name>" );
+				sender.sendMessage("Invalid arguments. Usage: /this sort <date,name>");
 			Fusster.updatePlayersPane();
 			break;
 		default:
@@ -90,21 +106,6 @@ public class ThisCommand extends DefaultCommand {
 		}
 
 		return false;
-	}
-	
-	public static void clear(){
-		Fusster.getServerUI().clearCommandLine();
-		Runtime.getRuntime().gc();
-	}
-	
-	public static float usedMem() {
-		float usedMemBytes = (float) (Runtime.getRuntime().totalMemory() - Runtime
-				.getRuntime().freeMemory());
-		float usedMemMB = usedMemBytes / (1024 * 1024);
-		float usedMemMBrounded = BigDecimal.valueOf(usedMemMB)
-				.setScale(4, BigDecimal.ROUND_HALF_UP).floatValue();
-		return usedMemMBrounded;
-
 	}
 
 }

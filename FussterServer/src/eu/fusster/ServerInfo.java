@@ -35,7 +35,7 @@ import java.util.Vector;
 
 public class ServerInfo {
 
-	public static final String VERSION = "Alpha 01F0A";
+	public static final String VERSION = "Alpha 01F0B";
 
 	private int max_players, port;
 	private String name;
@@ -69,50 +69,60 @@ public class ServerInfo {
 		updateBanListFile();
 	}
 
+	private void closeRedaer(Reader reader) {
+		try {
+			reader.close();
+		} catch (IOException e) {}
+	}
+
 	/**
-	 * Removes a player from the ban list
+	 * Creates a default configuration file that is valid
 	 *
-	 * @param string
-	 *            the String version of the {@link InetAddress} that will be
-	 *            removed from the list of prevented users
-	 * @return if the removal was successful
+	 * @param writer
+	 *            the initialised {@link PrintWriter} with the open
+	 *            configuration file
 	 */
-	public boolean unban(String string) {
-		boolean status = banList.removeElement(string);
-		updateBanListFile();
-		return status;
+	private void createDefault(PrintWriter writer) {
+		writer.println("// Default generated Server Configuration File");
+		writer.println("Name: TCP Server");
+		writer.println("Port: 47247");
+		writer.println("Max players: 16");
 	}
 
-	/**
-	 * Updates the file of prevented users by clearing it and rewriting it.
-	 */
-	public void updateBanListFile() {
+	public Vector<String> getBanList() {
+		return banList;
+	}
+
+	public int getMaxPlayers() {
+		return max_players;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	private BufferedReader getReader(File file) {
 		try {
-			new FileWriter(banListFile).close();
+			return new BufferedReader(new FileReader(file));
+		} catch (FileNotFoundException e) {
+			return null;
+		}
+	}
 
-			PrintWriter writer = getWriter(banListFile);
-
-			Set<String> set = new HashSet<String>(banList);
-			Iterator<String> it = set.iterator();
-			while (it.hasNext())
-				writer.println(it.next());
-			set.clear();
-
-			writer.close();
+	private PrintWriter getWriter(File file) {
+		try {
+			return new PrintWriter(new FileWriter(file, true));
 		} catch (IOException e) {
-			e.printStackTrace();
+			return null;
 		}
 	}
 
-	public void loadLogger() {
-		try {
-			File logs = Loader.loadDirectory("logs");
-			File currentLog = new File(logs, System.currentTimeMillis()
-					+ ".log");
-			this.logger = new PrintWriter(currentLog);
-		} catch (Exception e) {
-			Fusster.error("Failed to load the logger. Exception: " + e.getMessage());
-		}
+	public boolean isDebugging() {
+		return debugging;
 	}
 
 	/**
@@ -126,6 +136,18 @@ public class ServerInfo {
 		BufferedReader banListReader = getReader(banListFile);
 
 		readBanList(banListReader);
+	}
+
+	public void loadLogger() {
+		try {
+			File logs = Loader.loadDirectory("logs");
+			File currentLog = new File(logs, System.currentTimeMillis()
+					+ ".log");
+			this.logger = new PrintWriter(currentLog);
+		} catch (Exception e) {
+			Fusster.error("Failed to load the logger. Exception: "
+					+ e.getMessage());
+		}
 	}
 
 	/**
@@ -225,67 +247,46 @@ public class ServerInfo {
 		}
 	}
 
-	private boolean valid() {
-		return name != null && !name.equals("") && max_players >= 0;
-	}
-
-	private void closeRedaer(Reader reader) {
-		try {
-			reader.close();
-		} catch (IOException e) {}
-	}
-
-	private BufferedReader getReader(File file) {
-		try {
-			return new BufferedReader(new FileReader(file));
-		} catch (FileNotFoundException e) {
-			return null;
-		}
-	}
-
-	private PrintWriter getWriter(File file) {
-		try {
-			return new PrintWriter(new FileWriter(file, true));
-		} catch (IOException e) {
-			return null;
-		}
-	}
-
-	/**
-	 * Creates a default configuration file that is valid
-	 *
-	 * @param writer
-	 *            the initialised {@link PrintWriter} with the open
-	 *            configuration file
-	 */
-	private void createDefault(PrintWriter writer) {
-		writer.println("// Default generated Server Configuration File");
-		writer.println("Name: TCP Server");
-		writer.println("Port: 47247");
-		writer.println("Max players: 16");
-	}
-
-	public Vector<String> getBanList() {
-		return banList;
-	}
-
-	public boolean isDebugging() {
-		return debugging;
-	}
-
 	public void setDebugging(boolean debugging) {
 		this.debugging = debugging;
 	}
 
-	public int getMaxPlayers() {
-		return max_players;
+	/**
+	 * Removes a player from the ban list
+	 *
+	 * @param string
+	 *            the String version of the {@link InetAddress} that will be
+	 *            removed from the list of prevented users
+	 * @return if the removal was successful
+	 */
+	public boolean unban(String string) {
+		boolean status = banList.removeElement(string);
+		updateBanListFile();
+		return status;
 	}
 
-	public int getPort() {
-		return port;
+	/**
+	 * Updates the file of prevented users by clearing it and rewriting it.
+	 */
+	public void updateBanListFile() {
+		try {
+			new FileWriter(banListFile).close();
+
+			PrintWriter writer = getWriter(banListFile);
+
+			Set<String> set = new HashSet<String>(banList);
+			Iterator<String> it = set.iterator();
+			while (it.hasNext())
+				writer.println(it.next());
+			set.clear();
+
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public String getName() {
-		return name;
+	private boolean valid() {
+		return name != null && !name.equals("") && max_players >= 0;
 	}
 }

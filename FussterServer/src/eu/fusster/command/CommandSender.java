@@ -20,9 +20,9 @@
 package eu.fusster.command;
 
 public interface CommandSender {
-	public void sendMessage(String message);
-
 	public String getName();
 
 	public String getSeparator();
+
+	public void sendMessage(String message);
 }

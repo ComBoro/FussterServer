@@ -69,25 +69,25 @@ public class PluginDescription {
 			throw new PluginException("Invalid config file.");
 	}
 
-	private boolean isValid() {
-		return name != null && version != null && mainClass != null
-				&& !name.contains(".") && !name.contains(" ");
+	public String getAuthor() {
+		return author;
+	}
+
+	public String getMain() {
+		return mainClass;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public String getAuthor() {
-		return author;
-	}
-
 	public String getVersion() {
 		return version;
 	}
 
-	public String getMain() {
-		return mainClass;
+	private boolean isValid() {
+		return name != null && version != null && mainClass != null
+				&& !name.contains(".") && !name.contains(" ");
 	}
-	
+
 }

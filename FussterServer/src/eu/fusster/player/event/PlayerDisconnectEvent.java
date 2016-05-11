@@ -58,10 +58,32 @@ public class PlayerDisconnectEvent {
 	}
 
 	/**
+	 * @return the reason for the player to get disconnected
+	 */
+	public String getReason() {
+		return reason;
+	}
+
+	/**
 	 * @return the text to be appended in the console
 	 */
 	public String getToAppend() {
 		return toAppend;
+	}
+
+	/**
+	 * @return the String being send to all other users
+	 */
+	public String getToSend() {
+		return toSend;
+	}
+
+	/**
+	 * @param reason
+	 *            sets the reason for the player to get disconnected
+	 */
+	public void setReason(String reason) {
+		this.reason = reason;
 	}
 
 	/**
@@ -73,33 +95,11 @@ public class PlayerDisconnectEvent {
 	}
 
 	/**
-	 * @return the String being send to all other users
-	 */
-	public String getToSend() {
-		return toSend;
-	}
-
-	/**
 	 * @param toSend
 	 *            set the String that will be send to all other users
 	 */
 	public void setToSend(String toSend) {
 		this.toSend = toSend;
-	}
-
-	/**
-	 * @return the reason for the player to get disconnected
-	 */
-	public String getReason() {
-		return reason;
-	}
-
-	/**
-	 * @param reason
-	 *            sets the reason for the player to get disconnected
-	 */
-	public void setReason(String reason) {
-		this.reason = reason;
 	}
 
 }

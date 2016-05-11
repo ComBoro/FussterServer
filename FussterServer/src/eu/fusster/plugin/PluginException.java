@@ -35,8 +35,8 @@ public class PluginException extends Exception {
 		super(message);
 	}
 
-	public PluginException(Throwable throwable) {
-		super(throwable);
+	public PluginException(String message, FussterPlugin plugin) {
+		this(message, plugin.getDescription().getName());
 	}
 
 	public PluginException(String message, String pluginName) {
@@ -50,8 +50,8 @@ public class PluginException extends Exception {
 		this.pluginName = pluginName;
 	}
 
-	public PluginException(String message, FussterPlugin plugin) {
-		this(message, plugin.getDescription().getName());
+	public PluginException(Throwable throwable) {
+		super(throwable);
 	}
 
 	public String getPluginName() {

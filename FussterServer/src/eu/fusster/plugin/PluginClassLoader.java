@@ -76,16 +76,16 @@ public class PluginClassLoader extends URLClassLoader {
 		}
 	}
 
+	public FussterPlugin getPlugin() {
+		return plugin;
+	}
+
 	synchronized void initialize(FussterPlugin plugin) {
 		if (this.plugin != null) {
 			throw new IllegalArgumentException("Plugin already initialized!");
 		}
 		plugin.initialize(loader, description, file, dataFolder, defaultConfig,
 				this);
-	}
-
-	public FussterPlugin getPlugin() {
-		return plugin;
 	}
 
 }

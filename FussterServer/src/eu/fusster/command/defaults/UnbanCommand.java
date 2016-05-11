@@ -28,6 +28,7 @@ public class UnbanCommand extends DefaultCommand {
 		super("UnbanCommand", "Unbans an ip", "/unban 1.1.1.1");
 	}
 
+	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		if (args.length == 0)
 			return false;
