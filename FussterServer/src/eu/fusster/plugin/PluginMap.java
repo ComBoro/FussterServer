@@ -19,9 +19,11 @@
 
 package eu.fusster.plugin;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -208,7 +210,19 @@ public class PluginMap {
 		synchronized (synmap) {
 			if (synmap.containsKey(toRegister))
 				return;
+			
+			List<String> pluginNames = new ArrayList<>();
+			
+			for(FussterPlugin plugin : getPlugins()){
+				pluginNames.add(plugin.getDescription().getName());
+			}
+			
+			if(pluginNames.contains(toRegister.getDescription().getName()))
+				return;
+			
 			synmap.put(toRegister, new HashSet<Object>());
+			
+			Fusster.getServerUI().updatePluginsPane();
 		}
 	}
 
@@ -282,10 +296,12 @@ public class PluginMap {
 						Fusster.getProperties().remove(str);
 				}
 			}
-
+			
 			// Remove from map
 			if (remove)
 				synmap.remove(plugin);
+			
+			Fusster.getServerUI().updatePluginsPane();
 		}
 	}
 
@@ -319,6 +335,7 @@ public class PluginMap {
 	public void unrgisterAllCommands(FussterPlugin plugin) {
 		synchronized (synmap) {
 			for (Object object : synmap.get(plugin)) {
+				if(object == null) continue;
 				if (object instanceof Command) {
 					CommandMap.unregister((Command) object);
 				}

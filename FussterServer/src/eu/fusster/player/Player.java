@@ -64,7 +64,9 @@ public class Player implements CommandSender, ClientListener,
 	}
 
 	@Override
-	public void afterClose() {}
+	public void afterClose() {
+		Fusster.getServerUI().updateClientsPane();
+	}
 
 	public void closeConnection(String reason) {
 		client.closeConnection(reason);

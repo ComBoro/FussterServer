@@ -51,9 +51,11 @@ public class PluginsCommand extends DefaultCommand {
 				string += ", " + plugin.getDescription().getName();
 			sender.sendMessage("Available plugins [" + plugins + "] : "
 					+ string.substring(2, string.length()));
+			
+			return true;
 		}
 
-		if (args.length == 0 || args.length > 2) {
+		if (args.length > 2) {
 			sender.sendMessage("Invalid Arguments");
 			return false;
 		}

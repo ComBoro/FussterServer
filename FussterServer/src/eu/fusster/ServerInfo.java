@@ -35,7 +35,7 @@ import java.util.Vector;
 
 public class ServerInfo {
 
-	public static final String VERSION = "Alpha 01F0B";
+	public static final String VERSION = "Alpha 01F0E";
 
 	private int max_players, port;
 	private String name;

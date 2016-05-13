@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +31,8 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -53,13 +57,16 @@ import eu.fusster.command.CommandMap;
 import eu.fusster.command.ConsoleCommandSender;
 import eu.fusster.command.defaults.ThisCommand;
 import eu.fusster.player.Player;
+import eu.fusster.player.PlayerException;
 import eu.fusster.player.PlayerManager;
+import eu.fusster.plugin.FussterPlugin;
 import eu.fusster.plugin.PluginException;
+import eu.fusster.plugin.PluginMap;
 
 public class BetterUI extends JFrame {
 	private static final long serialVersionUID = 1L;
 
-	private static List<String> lastCommands = new ArrayList<String>();
+	private static List<String> lastCommands = new ArrayList<>();
 	private static final AttributeSet timeAset = StyleContext
 			.getDefaultStyleContext().addAttribute(SimpleAttributeSet.EMPTY,
 					StyleConstants.Foreground, Color.GRAY);
@@ -73,6 +80,7 @@ public class BetterUI extends JFrame {
 	private JTabbedPane consoleTabbedPane;
 	private JTextField commandLine;
 	private JMenuBar menuBar;
+	private JMenu plugin;
 
 	private JList<String> playersList;
 
@@ -83,10 +91,12 @@ public class BetterUI extends JFrame {
 	private Image logoBlue;
 
 	private int UPpressed = 0;
+
 	// License stuff
 	private boolean licenseOpened = false;
 
 	private JScrollPane licenseScrollPane;
+
 	// Creating plugin help page stuff
 	private boolean pluginsTabOpened = false;
 
@@ -171,6 +181,7 @@ public class BetterUI extends JFrame {
 		}
 
 		logoBlue = Loader.loadImage("/res/logoNoBG25x25.png");
+		setIconImage(logoBlue);
 
 		clientsTabbedPane = new JTabbedPane();
 		playersScrollPane = new JScrollPane();
@@ -249,10 +260,63 @@ public class BetterUI extends JFrame {
 				int code = e.getKeyCode();
 				if (code == KeyEvent.VK_ENTER)
 					onButtonClick();
-				else if (code == KeyEvent.VK_UP)
-					onArrowClick(true);
-				else if (code == KeyEvent.VK_DOWN)
-					onArrowClick(false);
+				else if (code == KeyEvent.VK_UP) {
+					commandLine.setText(onArrowClick(true));
+				} else if (code == KeyEvent.VK_DOWN) {
+					commandLine.setText(onArrowClick(false));
+				}
+			}
+		});
+
+		playersList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (SwingUtilities.isRightMouseButton(e)) {
+
+					if (PlayerManager.getPlayers().size() >= 1) {
+
+						@SuppressWarnings("rawtypes")
+						JList list = (JList) e.getSource();
+						final int row = list.locationToIndex(e.getPoint());
+						list.setSelectedIndex(row);
+
+						JPopupMenu pm = new JPopupMenu();
+
+						JMenuItem kickMenuItem = new JMenuItem("Kick");
+						JMenuItem messageMenuItem = new JMenuItem("Message");
+
+						kickMenuItem.addActionListener(ae -> {
+							try {
+								String playerName = PlayerManager.getPlayers()
+										.get(row).getName();
+								Player player = PlayerManager.get(playerName);
+								PlayerManager.removePlayer(player,
+										"Kicked by Console");
+							} catch (PlayerException e1) {
+								append("Not working :(");
+							}
+						});
+
+						messageMenuItem.addActionListener(ae -> {
+							Player p = PlayerManager.getPlayers().get(row);
+							String toSend = JOptionPane.showInputDialog(null,
+									"Send Message",
+									"Send a message to " + p.getName(),
+									JOptionPane.INFORMATION_MESSAGE);
+							if (toSend != null)
+								p.sendMessage(toSend);
+						});
+
+						pm.add(kickMenuItem);
+						pm.add(messageMenuItem);
+						list.addMouseListener(new MouseAdapter() {
+							@Override
+							public void mouseClicked(MouseEvent e) {
+								pm.show(e.getComponent(), e.getX(), e.getY());
+							}
+						});
+					}
+				}
 			}
 		});
 
@@ -277,7 +341,7 @@ public class BetterUI extends JFrame {
 		menuBar.add(thisMenu);
 
 		// Plugin Menu
-		JMenu plugin = new JMenu("Plugin");
+		plugin = new JMenu("Plugin");
 
 		JMenuItem plugin_import = new JMenuItem("Import");
 		plugin_import.addActionListener(ae -> {
@@ -309,6 +373,8 @@ public class BetterUI extends JFrame {
 		});
 		plugin.add(plugin_importAll);
 
+		plugin.addSeparator();
+
 		JMenuItem plugin_loadAll = new JMenuItem("Load all");
 		plugin_loadAll.addActionListener(ae -> {
 			if (Fusster.getPluginLoader() != null)
@@ -329,6 +395,10 @@ public class BetterUI extends JFrame {
 				Fusster.getPluginLoader().unloadAll();
 		});
 		plugin.add(plugin_unloadAll);
+
+		plugin.addSeparator();
+
+		updatePluginsPane();
 
 		menuBar.add(plugin);
 
@@ -417,6 +487,51 @@ public class BetterUI extends JFrame {
 		setVisible(true);
 	}
 
+	public void updatePluginsPane() {
+		int count = plugin.getItemCount();
+		final int defaultOnes = 7;
+
+		count -= defaultOnes;
+
+		if (count < 0)
+			return;
+		else {
+			// Clear
+			for (int i = 0; i < count; i++)
+				plugin.remove(defaultOnes + i);
+
+			// Add all
+			PluginMap pmap = Fusster.getPluginMap();
+			if (pmap != null)
+				for (FussterPlugin plg : pmap.getPlugins())
+					plugin.add(genMenu(plg));
+		}
+
+	}
+
+	private JMenu genMenu(FussterPlugin plg) {
+		JMenu temp = new JMenu(plg.getDescription().getName());
+
+		JMenuItem reload = new JMenuItem("Reload");
+		reload.addActionListener(ae ->{
+			if(Fusster.getPluginMap().getPlugins().contains(plg))
+			Fusster.getPluginLoader().reload(plg);
+			else plugin.remove(temp);
+		});
+		temp.add(reload);
+
+		JMenuItem unload = new JMenuItem("Unload");
+		unload.addActionListener(ae -> {
+			if(Fusster.getPluginMap().getPlugins().contains(plg))
+			plugin.remove(temp);
+			else plugin.remove(temp);
+
+		});
+		temp.add(unload);
+
+		return temp;
+	}
+
 	public boolean isDebugging() {
 		return debugging;
 	}
@@ -427,13 +542,14 @@ public class BetterUI extends JFrame {
 
 	private String onArrowClick(boolean isUParrow) {
 		int size = lastCommands.size();
+		if (size == 0)
+			return "";
 		if (isUParrow) {
 			UPpressed++;
 
 			int result = size - UPpressed;
 
 			if (result < 0) {
-				result = 0;
 				UPpressed--;
 				try {
 					return lastCommands.get(0);
@@ -450,7 +566,6 @@ public class BetterUI extends JFrame {
 			int result = size - UPpressed;
 
 			if (result > arraySize) {
-				result = arraySize;
 				UPpressed++;
 				try {
 					return lastCommands.get(arraySize);
@@ -458,6 +573,7 @@ public class BetterUI extends JFrame {
 					return "";
 				}
 			}
+
 			try {
 				return lastCommands.get(result);
 			} catch (IndexOutOfBoundsException e) {
@@ -470,7 +586,7 @@ public class BetterUI extends JFrame {
 		String command = commandLine.getText().trim();
 		CommandMap.dispatch(ConsoleCommandSender.getInstance(), command);
 		clearCommandLine();
-		if (command == null || command.equals(""))
+		if (!(command == null || command.equals("")))
 			lastCommands.add(command);
 	}
 
